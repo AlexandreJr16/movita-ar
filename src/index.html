@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <title>Movita AR</title>
+
+    <script src="https://launchar.app/sdk/v1?key=kC2tXMzJZ67s2BylzMdIO6BhxM4XgJ1i&redirect=true"></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <link rel="icon" href="logo.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+  </head>
+  <body>
+    <div id="overlay">
+      <div id="tracking-prompt"><img src="hand.png" /></div>
+      <div id="instructions">Tap to grow</div>
+    </div>
+    <div id="app">
+      <a href="#"
+        ><img
+          id="variant-logo"
+          alt="WebXR on iOS"
+          style="width: 50px"
+          src="logo.svg"
+      /></a>
+      <h2>Movita AR</h2>
+      <div id="ar-not-supported">
+        <p>A realidade aumentada não é suportada no seu dispositivo.</p>
+        <p>Para mais informações entre em contato com a equipe movita</p>
+        <img id="qr-code" />
+      </div>
+    </div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
