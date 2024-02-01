@@ -158,6 +158,17 @@ function render(timestamp, frame) {
         }
         const hit = hitTestResults[0];
 
+        if (hit) {
+          const hitMatrix = new THREE.Matrix4().fromArray(
+            hit.getPose(referenceSpace).transform.matrix
+          );
+          const hitNormal = new THREE.Vector3(0, 0, -1); // Vetor vertical para cima, assumindo um sistema de coordenadas padrão
+
+          hitNormal.applyMatrix4(hitMatrix);
+
+          // Verifica a orientação do plano
+        }
+
         reticle.visible = true;
         reticle.matrix.fromArray(hit.getPose(referenceSpace).transform.matrix);
       } else {
@@ -167,4 +178,11 @@ function render(timestamp, frame) {
   }
 
   renderer.render(scene, camera);
+}
+
+function setMessage(text) {
+  const messageElement = document.getElementById("message");
+  if (messageElement) {
+    messageElement.textContent = text;
+  }
 }
