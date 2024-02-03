@@ -105,7 +105,7 @@ function init() {
 
   //load flowers.glb
   const objLoader = new GLTFLoader();
-  objLoader.load("chair4.glb", (object) => {
+  objLoader.load("chair1.glb", (object) => {
     console.log(object);
     obj3d = object.scene;
   });
