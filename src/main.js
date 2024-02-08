@@ -2,15 +2,12 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 import "./qr.js";
-
 import "./style.css";
 
 let container;
 let camera, scene, renderer;
 let controller;
-
 let reticle;
-
 let hitTestSource = null;
 let lastObject = null;
 let hitTestSourceRequested = false;
@@ -103,12 +100,29 @@ function init() {
   reticle.visible = false;
   scene.add(reticle);
 
-  //load flowers.glb
-  const objLoader = new GLTFLoader();
-  objLoader.load("chair1.glb", (object) => {
-    console.log(object);
-    obj3d = object.scene;
-  });
+  // Carregue o modelo 3D a partir da API
+  const apiUrl = "http://localhost:3000/modelo3d/1"; // Substitua pela sua URL real
+  fetch(apiUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      const base64Data = data.modeloBin; // Substitua pela propriedade real do seu JSON
+      const buffer = new Uint8Array(
+        atob(base64Data)
+          .split("")
+          .map((c) => c.charCodeAt(0))
+      );
+      const blob = new Blob([buffer], { type: "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+
+      const objLoader = new GLTFLoader();
+      objLoader.load(url, (object) => {
+        console.log(object);
+        obj3d = object.scene;
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching the 3D model:", error);
+    });
 
   window.addEventListener("resize", onWindowResize);
 }
@@ -152,7 +166,7 @@ function render(timestamp, frame) {
       if (hitTestResults.length) {
         if (!planeFound) {
           planeFound = true;
-          //hide #tracking-prompt
+          // Esconda #tracking-prompt
           document.getElementById("tracking-prompt").style.display = "none";
           document.getElementById("instructions").style.display = "flex";
         }
