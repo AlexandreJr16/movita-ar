@@ -3,7 +3,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 import "./style.css";
 
-const URL_BASE = "http://localhost:3000/modelo3d/";
+const URL_BASE = "http://localhost:3333/modelo3d/";
 
 let container,
   camera,
@@ -23,38 +23,55 @@ let hitTestSource = null,
 const objLoader = new GLTFLoader();
 
 const getModelUrl = () => {
-  const match = window.location.href.match(/\/(\d+)/);
-  return match ? `${URL_BASE}${match[1]}` : "";
+  // const match = window.location.href.match(/\/(\d+)/);
+  // console.log(match);
+  // console.log(`${URL_BASE}${match[1]}`);
+  // return match ? `${URL_BASE}${10}` : "";
+  return `${URL_BASE}${10}`;
 };
 
 const loadModel = () => {
-  fetch(apiUrl)
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.message) {
-        modelSuported = false;
-      } else {
-        modelSuported = true;
+  if (window.navigator.xr) {
+    console.log("BABA");
+    document.getElementById("ar-not-supported").innerHTML = "SIM";
+  } else {
+    document.getElementById("ar-not-supported").innerHTML = "Nao";
+  }
+  // fetch(apiUrl)
+  //   .then((response) => response.json())
+  //   .then((data) => {
+  //     console.log(data.modelo3D.modelBin.data, "OLA");
+  //     modelSuported = true;
 
-        scene = new THREE.Scene();
+  //     scene = new THREE.Scene();
 
-        modelBlob = new Blob([
-          new Uint8Array(data.modelo3D.modelBin.data).buffer,
-        ]);
-        objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
-          obj3d = gltf.scene;
-          scene.add(obj3d);
-        });
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching model from the database", error);
-    })
-    .finally(() => initialize());
+  //     modelBlob = new Blob([
+  //       new Uint8Array(data.modelo3D.modelBin.data).buffer,
+  //     ]);
+
+  //     objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
+  //       obj3d = gltf.scene;
+  //       scene.add(obj3d);
+  //     });
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error fetching model from the database", error);
+  //   })
+  //   .finally(() => initialize());
+
+  scene = new THREE.Scene();
+
+  const objLoader = new GLTFLoader();
+  modelSuported = true;
+  objLoader.load("modelo.glb", (object) => {
+    console.log(object);
+    obj3d = object.scene;
+  });
+  initialize();
 };
 
 const initialize = () => {
-  if ("xr" in navigator) {
+  if (navigator.xr) {
     navigator.xr.isSessionSupported("immersive-ar").then((supported) => {
       if (!modelSuported) {
         document.getElementById("ar-not-supported").style.display = "none";
@@ -66,6 +83,8 @@ const initialize = () => {
         animate();
       }
     });
+  } else {
+    document.getElementById("model-unsupported").style.display = "none";
   }
 };
 
@@ -161,7 +180,7 @@ const onSelect = () => {
     reticle.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
     const scale = 1;
     mesh.scale.set(scale, scale, scale);
-    mesh.rotateX(Math.PI / 2);
+    // mesh.rotateX(Math.PI / 2);
     scene.add(mesh);
 
     const interval = setInterval(() => {

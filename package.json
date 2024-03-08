@@ -9,7 +9,7 @@
     "build": "vite build",
     "serve-public": "vite & cloudflared tunnel --url http://localhost:5173",
     "preview": "vite preview",
-    "subdir-build" : "vite build --base=/threejs/"
+    "subdir-build": "vite build --base=/threejs/"
   },
   "devDependencies": {
     "cloudflared": "^0.4.0",
