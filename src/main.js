@@ -1,10 +1,13 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
+
 import "./style.css";
 
 const URL_BASE = "http://localhost:3333/modelo3d/";
 
+// const URL_BASE =
+// "https://dbe0-2804-14d-14a1-58b6-587d-e4b9-3e8a-9eae.ngrok-free.app/modelo3d/";
 let container,
   camera,
   scene,
@@ -12,7 +15,7 @@ let container,
   controller,
   reticle,
   obj3d,
-  modelSuported,
+  modelSupported,
   modelBlob,
   apiUrl;
 let hitTestSource = null,
@@ -23,57 +26,49 @@ let hitTestSource = null,
 const objLoader = new GLTFLoader();
 
 const getModelUrl = () => {
-  // const match = window.location.href.match(/\/(\d+)/);
-  // console.log(match);
-  // console.log(`${URL_BASE}${match[1]}`);
-  // return match ? `${URL_BASE}${10}` : "";
   return `${URL_BASE}${10}`;
 };
 
 const loadModel = () => {
   if (window.navigator.xr) {
-    console.log("BABA");
     document.getElementById("ar-not-supported").innerHTML = "SIM";
   } else {
-    document.getElementById("ar-not-supported").innerHTML = "Nao";
+    document.getElementById("ar-not-supported").innerHTML = "Não";
   }
-  // fetch(apiUrl)
+  // fetch(apiUrl, {
+  //   headers: new Headers({
+  //     "ngrok-skip-browser-warning": "69420",
+  //   }),
+  // })
   //   .then((response) => response.json())
   //   .then((data) => {
-  //     console.log(data.modelo3D.modelBin.data, "OLA");
-  //     modelSuported = true;
-
-  //     scene = new THREE.Scene();
-
-  //     modelBlob = new Blob([
-  //       new Uint8Array(data.modelo3D.modelBin.data).buffer,
-  //     ]);
-
-  //     objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
-  //       obj3d = gltf.scene;
-  //       scene.add(obj3d);
-  //     });
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error fetching model from the database", error);
-  //   })
-  //   .finally(() => initialize());
+  modelSupported = true;
+  // console.log(data);
 
   scene = new THREE.Scene();
 
-  const objLoader = new GLTFLoader();
-  modelSuported = true;
+  // modelBlob = new Blob([new Uint8Array(data.modelo3D.modelBin.data).buffer]);
+
+  // objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
+  //   obj3d = gltf.scene;
+  //   scene.add(obj3d);
+  // });
   objLoader.load("modelo.glb", (object) => {
     console.log(object);
     obj3d = object.scene;
   });
+  // })
+  // .catch((error) => {
+  //   console.error("Error fetching model from the database", error);
+  // })
+  // .finally(() => initialize());
   initialize();
 };
 
 const initialize = () => {
   if (navigator.xr) {
     navigator.xr.isSessionSupported("immersive-ar").then((supported) => {
-      if (!modelSuported) {
+      if (!modelSupported) {
         document.getElementById("ar-not-supported").style.display = "none";
       } else if (supported) {
         document.getElementById("ar-not-supported").style.display = "none";
@@ -181,6 +176,10 @@ const onSelect = () => {
     const scale = 1;
     mesh.scale.set(scale, scale, scale);
     // mesh.rotateX(Math.PI / 2);
+
+    // Adicione um manipulador de eventos de toque/mouse para detecção de gestos de dois dedos
+    document.addEventListener("touchmove", onTouchMove);
+
     scene.add(mesh);
 
     const interval = setInterval(() => {
@@ -191,6 +190,29 @@ const onSelect = () => {
     }, 500);
 
     lastObject = mesh;
+  }
+};
+const onTouchMove = (event) => {
+  // Verifique se há dois dedos na tela
+  if (event.touches.length === 2) {
+    // Obtenha as posições dos dois dedos
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+
+    // Calcule a diferença de posição entre os dois dedos
+    const deltaX = touch2.clientX - touch1.clientX;
+    const deltaY = touch2.clientY - touch1.clientY;
+
+    // Calcule o ângulo de rotação com base na diferença de posição
+    const angle = Math.atan2(deltaY, deltaX);
+
+    // Ajuste o fator de escala para diminuir a sensibilidade da rotação
+    const rotationFactor = 0.01; // Ajuste esse valor conforme necessário
+
+    // Aplique a rotação ao objeto 3D com base no ângulo e no fator de escala
+    if (lastObject) {
+      lastObject.rotation.y += angle * rotationFactor;
+    }
   }
 };
 
@@ -259,3 +281,4 @@ const render = (timestamp, frame) => {
 
 apiUrl = getModelUrl();
 loadModel();
+``;
