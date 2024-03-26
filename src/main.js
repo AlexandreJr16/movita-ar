@@ -6,8 +6,6 @@ import "./style.css";
 
 const URL_BASE = "http://localhost:3333/modelo3d/";
 
-// const URL_BASE =
-// "https://dbe0-2804-14d-14a1-58b6-587d-e4b9-3e8a-9eae.ngrok-free.app/modelo3d/";
 let container,
   camera,
   scene,
@@ -17,6 +15,7 @@ let container,
   obj3d,
   modelSupported,
   modelBlob,
+  isMoving,
   apiUrl;
 let hitTestSource = null,
   lastObject = null,
@@ -35,33 +34,16 @@ const loadModel = () => {
   } else {
     document.getElementById("ar-not-supported").innerHTML = "Não";
   }
-  // fetch(apiUrl, {
-  //   headers: new Headers({
-  //     "ngrok-skip-browser-warning": "69420",
-  //   }),
-  // })
-  //   .then((response) => response.json())
-  //   .then((data) => {
+
   modelSupported = true;
-  // console.log(data);
 
   scene = new THREE.Scene();
 
-  // modelBlob = new Blob([new Uint8Array(data.modelo3D.modelBin.data).buffer]);
-
-  // objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
-  //   obj3d = gltf.scene;
-  //   scene.add(obj3d);
-  // });
   objLoader.load("modelo.glb", (object) => {
     console.log(object);
     obj3d = object.scene;
   });
-  // })
-  // .catch((error) => {
-  //   console.error("Error fetching model from the database", error);
-  // })
-  // .finally(() => initialize());
+
   initialize();
 };
 
@@ -145,6 +127,8 @@ const createARButton = () => {
 const createController = () => {
   controller = renderer.xr.getController(0);
   controller.addEventListener("select", onSelect);
+  document.addEventListener("touchmove", onTouchMove);
+
   scene.add(controller);
 };
 
@@ -163,7 +147,7 @@ const addEventListeners = () => {
 };
 
 const onSelect = () => {
-  if (reticle.visible && obj3d) {
+  if (reticle.visible && obj3d && !isMoving) {
     if (lastObject) {
       scene.remove(lastObject);
       lastObject = null;
@@ -173,12 +157,8 @@ const onSelect = () => {
     const mesh = flower.clone();
 
     reticle.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
-    const scale = 1;
+    const scale = 0.5;
     mesh.scale.set(scale, scale, scale);
-    // mesh.rotateX(Math.PI / 2);
-
-    // Adicione um manipulador de eventos de toque/mouse para detecção de gestos de dois dedos
-    document.addEventListener("touchmove", onTouchMove);
 
     scene.add(mesh);
 
@@ -192,28 +172,42 @@ const onSelect = () => {
     lastObject = mesh;
   }
 };
+
 const onTouchMove = (event) => {
-  // Verifique se há dois dedos na tela
   if (event.touches.length === 2) {
-    // Obtenha as posições dos dois dedos
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];
 
-    // Calcule a diferença de posição entre os dois dedos
     const deltaX = touch2.clientX - touch1.clientX;
     const deltaY = touch2.clientY - touch1.clientY;
 
-    // Calcule o ângulo de rotação com base na diferença de posição
     const angle = Math.atan2(deltaY, deltaX);
 
-    // Ajuste o fator de escala para diminuir a sensibilidade da rotação
-    const rotationFactor = 0.01; // Ajuste esse valor conforme necessário
-
-    // Aplique a rotação ao objeto 3D com base no ângulo e no fator de escala
-    if (lastObject) {
-      lastObject.rotation.y += angle * rotationFactor;
+    const rotationFactor = 0.01;
+    const zoomFactor = 0.01;
+    // COndicição do if abaixo
+    // Math.abs(deltaX) > Math.abs(deltaY)
+    if (true) {
+      rotateObject(angle, rotationFactor);
+    } else {
+      zoomObject(deltaY, zoomFactor);
     }
+    isMoving = true;
+  } else {
+    setTimeout(() => {
+      isMoving = false;
+    }, 1000);
   }
+};
+
+const rotateObject = (angle, rotationFactor) => {
+  if (lastObject) {
+    lastObject.rotation.y += angle * rotationFactor;
+  }
+};
+
+const zoomObject = (deltaY, zoomFactor) => {
+  // Implementar a lógica de zoom posteriormente
 };
 
 const onWindowResize = () => {
@@ -232,15 +226,15 @@ const render = (timestamp, frame) => {
     const session = renderer.xr.getSession();
 
     if (hitTestSourceRequested === false) {
-      session.requestReferenceSpace("viewer").then(function (referenceSpace) {
+      session.requestReferenceSpace("viewer").then((referenceSpace) => {
         session
           .requestHitTestSource({ space: referenceSpace })
-          .then(function (source) {
+          .then((source) => {
             hitTestSource = source;
           });
       });
 
-      session.addEventListener("end", function () {
+      session.addEventListener("end", () => {
         hitTestSourceRequested = false;
         hitTestSource = null;
       });
@@ -281,4 +275,3 @@ const render = (timestamp, frame) => {
 
 apiUrl = getModelUrl();
 loadModel();
-``;
