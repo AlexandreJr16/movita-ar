@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
+import SpriteText from "three-spritetext";
 
 import "./style.css";
 
@@ -38,6 +39,7 @@ const loadModel = () => {
   modelSupported = true;
 
   scene = new THREE.Scene();
+  const myText = new SpriteText(["OLAIDAND", 16, "white"]);
 
   objLoader.load("modelo.glb", (object) => {
     console.log(object);
@@ -160,6 +162,38 @@ const onSelect = () => {
     const scale = 0.5;
     mesh.scale.set(scale, scale, scale);
 
+    // Adicione o texto como um filho do objeto móvel
+    const boundingBox = new THREE.Box3().setFromObject(mesh);
+    const object3DWidth = boundingBox.max.x - boundingBox.min.x;
+    const object3DHeight = boundingBox.max.y - boundingBox.min.y;
+    const object3DDepth = boundingBox.max.z - boundingBox.min.z;
+
+    const textWidth = new SpriteText(
+      `W: ${object3DWidth.toFixed(2)}`,
+      0.1,
+      "white"
+    );
+    textWidth.position.set(object3DWidth * 1.5, 0, 0); // Posicione o texto na borda da largura (horizontalmente)
+    textWidth.rotation.y = Math.PI / 2; // Rotacione o texto para que fique na vertical
+    mesh.add(textWidth);
+
+    const textHeight = new SpriteText(
+      `H: ${object3DHeight.toFixed(2)}`,
+      0.1,
+      "white"
+    );
+    textHeight.position.set(0, object3DHeight * 2, 0); // Posicione o texto na borda da altura (verticalmente)
+    mesh.add(textHeight);
+
+    const textDepth = new SpriteText(
+      `D: ${object3DDepth.toFixed(2)}`,
+      0.1,
+      "white"
+    );
+    textDepth.position.set(0, 0, object3DDepth); // Posicione o texto na borda da profundidade (no chão)
+    mesh.add(textDepth);
+    // Ajuste a posição do texto para que ele fique acima do objeto
+
     scene.add(mesh);
 
     const interval = setInterval(() => {
@@ -167,6 +201,16 @@ const onSelect = () => {
     }, 16);
     setTimeout(() => {
       clearInterval(interval);
+
+      // Compute bounding box to get dimensions after scaling
+      const object3DWidth = boundingBox.max.x - boundingBox.min.x;
+      const object3DHeight = boundingBox.max.y - boundingBox.min.y;
+      const object3DDepth = boundingBox.max.z - boundingBox.min.z;
+
+      // Log the dimensions
+      console.log("Width after scaling:", object3DWidth);
+      console.log("Height after scaling:", object3DHeight);
+      console.log("Depth after scaling:", object3DDepth);
     }, 500);
 
     lastObject = mesh;
