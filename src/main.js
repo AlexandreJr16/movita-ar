@@ -169,7 +169,7 @@ const onSelect = () => {
     const object3DDepth = boundingBox.max.z - boundingBox.min.z;
 
     const textWidth = new SpriteText(
-      `W: ${object3DWidth.toFixed(2)}`,
+      `L: ${object3DWidth.toFixed(2)}m`,
       0.1,
       "white"
     );
@@ -178,7 +178,7 @@ const onSelect = () => {
     mesh.add(textWidth);
 
     const textHeight = new SpriteText(
-      `H: ${object3DHeight.toFixed(2)}`,
+      `A: ${object3DHeight.toFixed(2)}m`,
       0.1,
       "white"
     );
@@ -186,7 +186,7 @@ const onSelect = () => {
     mesh.add(textHeight);
 
     const textDepth = new SpriteText(
-      `D: ${object3DDepth.toFixed(2)}`,
+      `P: ${object3DDepth.toFixed(2)}m`,
       0.1,
       "white"
     );
