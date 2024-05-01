@@ -5,6 +5,18 @@ import SpriteText from "three-spritetext";
 
 import "./style.css";
 
+const initHammer = () => {
+  const element = document.getElementById("seuElemento");
+  const hammertime = new Hammer(element);
+  hammertime.on("swipe", function (event) {
+    console.log("Swiped!", event);
+  });
+
+  hammertime.on("pinch", function (event) {
+    console.log("Pinched!", event);
+  });
+};
+
 const URL_BASE = "http://localhost:3333/modelo3d/";
 
 let container,
@@ -41,7 +53,7 @@ const loadModel = () => {
   scene = new THREE.Scene();
   const myText = new SpriteText(["OLAIDAND", 16, "white"]);
 
-  objLoader.load("modelo.glb", (object) => {
+  objLoader.load("/m1.glb", (object) => {
     console.log(object);
     obj3d = object.scene;
   });
@@ -217,7 +229,7 @@ const onSelect = () => {
   }
 };
 
-const onTouchMove = (event) => {
+const onTouchMove = async (event) => {
   if (event.touches.length === 2) {
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];
@@ -225,17 +237,22 @@ const onTouchMove = (event) => {
     const deltaX = touch2.clientX - touch1.clientX;
     const deltaY = touch2.clientY - touch1.clientY;
 
-    const angle = Math.atan2(deltaY, deltaX);
+    // Calcula a diferença absoluta entre deltaX e deltaY
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
 
-    const rotationFactor = 0.01;
+    const rotationFactor = 10000;
     const zoomFactor = 0.01;
-    // COndicição do if abaixo
-    // Math.abs(deltaX) > Math.abs(deltaY)
-    if (true) {
-      rotateObject(angle, rotationFactor);
+
+    if (absDeltaX > absDeltaY) {
+      // Arrasto na horizontal
+
+      rotateObject(deltaX, rotationFactor);
     } else {
+      // Arrasto na vertical
       zoomObject(deltaY, zoomFactor);
     }
+
     isMoving = true;
   } else {
     setTimeout(() => {
@@ -246,7 +263,7 @@ const onTouchMove = (event) => {
 
 const rotateObject = (angle, rotationFactor) => {
   if (lastObject) {
-    lastObject.rotation.y += angle * rotationFactor;
+    lastObject.rotation.y += angle / rotationFactor;
   }
 };
 
