@@ -334,5 +334,29 @@ const render = (timestamp, frame) => {
   renderer.render(scene, camera);
 };
 
+const checkCameraPermission = async () => {
+  try {
+    const permissionStatus = await navigator.permissions.query({
+      name: "camera",
+    });
+
+    if (permissionStatus.state === "granted") {
+      console.log("Permissão da câmera concedida.");
+      // Iniciar a experiência de AR aqui
+    } else if (permissionStatus.state === "prompt") {
+      console.log("Aguardando permissão da câmera...");
+      // O navegador solicitará permissão quando a experiência de AR for iniciada
+    } else {
+      console.log("Permissão da câmera negada.");
+      // Lidar com o caso em que a permissão foi negada
+    }
+  } catch (error) {
+    console.error("Erro ao verificar permissão da câmera:", error);
+  }
+};
+
+// Chamar a função para verificar a permissão da câmera
+checkCameraPermission();
+
 apiUrl = getModelUrl();
 loadModel();
