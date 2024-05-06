@@ -18,6 +18,7 @@ const initHammer = () => {
 };
 
 const URL_BASE = "http://localhost:3333/modelo3d/";
+let lastX = 0; // Variável para armazenar a última posição X do toque
 
 let container,
   camera,
@@ -92,6 +93,7 @@ const requestCameraPermission = async () => {
       video: { facingMode: "environment" },
     });
     stream.getTracks().forEach((track) => track.stop()); // Parar o stream de vídeo após a verificação da permissão
+    console.log(stream);
     return true; // Permissões concedidas
   } catch (error) {
     console.error("Erro ao solicitar permissões de câmera:", error);
@@ -248,47 +250,37 @@ const onSelect = () => {
     lastObject = mesh;
   }
 };
-
 const onTouchMove = async (event) => {
-  if (event.touches.length === 2) {
-    const touch1 = event.touches[0];
-    const touch2 = event.touches[1];
+  if (event.touches.length === 1) {
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - lastX; // lastX é a posição X anterior do toque, que precisa ser atualizado ao fim do movimento
 
-    const deltaX = touch2.clientX - touch1.clientX;
-    const deltaY = touch2.clientY - touch1.clientY;
+    const rotationFactor = 500; // Ajuste conforme a sensibilidade desejada
 
-    // Calcula a diferença absoluta entre deltaX e deltaY
-    const absDeltaX = Math.abs(deltaX);
-    const absDeltaY = Math.abs(deltaY);
+    // Rotacionar com base no movimento horizontal de um dedo
+    rotateObject(deltaX, rotationFactor);
 
-    const rotationFactor = 10000;
-    const zoomFactor = 0.01;
-
-    if (absDeltaX > absDeltaY) {
-      // Arrasto na horizontal
-
-      rotateObject(deltaX, rotationFactor);
-    } else {
-      // Arrasto na vertical
-      zoomObject(deltaY, zoomFactor);
-    }
-
+    lastX = touch.clientX; // Atualiza a posição X para o próximo movimento
     isMoving = true;
-  } else {
-    setTimeout(() => {
-      isMoving = false;
-    }, 1000);
+  } else if (event.touches.length === 2) {
+    // Implementação futura para zoom
+    performZoom(); // Função vazia ou com lógica inicial de zoom
   }
+
+  // Reset isMoving
+  setTimeout(() => {
+    isMoving = false;
+  }, 1000);
 };
 
-const rotateObject = (angle, rotationFactor) => {
+const rotateObject = (deltaX, rotationFactor) => {
   if (lastObject) {
-    lastObject.rotation.y += angle / rotationFactor;
+    lastObject.rotation.y += deltaX / rotationFactor;
   }
 };
 
-const zoomObject = (deltaY, zoomFactor) => {
-  // Implementar a lógica de zoom posteriormente
+const performZoom = () => {
+  // Lógica para zoom (vazia por enquanto)
 };
 
 const onWindowResize = () => {
