@@ -20,6 +20,8 @@ const initHammer = () => {
 const URL_BASE = "http://localhost:3333/modelo3d/";
 let lastX = 0; // Variável para armazenar a última posição X do toque
 
+let lastRotationY = 0; // Variável para armazenar a rotação acumulada ao longo do eixo Y
+
 let container,
   camera,
   scene,
@@ -162,7 +164,11 @@ const createARButton = () => {
 
 const createController = () => {
   controller = renderer.xr.getController(0);
-  controller.addEventListener("select", onSelect);
+  // controller.addEventListener("select", onSelect);
+
+  // Adiciona o ouvinte de evento de clique ao botão
+  document.getElementById("btn").addEventListener("click", onSelect);
+
   document.addEventListener("touchmove", onTouchMove);
 
   scene.add(controller);
@@ -261,16 +267,10 @@ const onTouchMove = async (event) => {
     rotateObject(deltaX, rotationFactor);
 
     lastX = touch.clientX; // Atualiza a posição X para o próximo movimento
-    isMoving = true;
   } else if (event.touches.length === 2) {
     // Implementação futura para zoom
     performZoom(); // Função vazia ou com lógica inicial de zoom
   }
-
-  // Reset isMoving
-  setTimeout(() => {
-    isMoving = false;
-  }, 1000);
 };
 
 const rotateObject = (deltaX, rotationFactor) => {
@@ -322,7 +322,9 @@ const render = (timestamp, frame) => {
         if (!planeFound) {
           planeFound = true;
           document.getElementById("tracking-prompt").style.display = "none";
-          document.getElementById("instructions").style.display = "flex";
+        }
+        if (planeFound) {
+          document.getElementById("btn").style.display = "flex";
         }
         const hit = hitTestResults[0];
 
