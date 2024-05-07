@@ -18,9 +18,6 @@ const initHammer = () => {
 };
 
 const URL_BASE = "http://localhost:3333/modelo3d/";
-let lastX = 0; // Variável para armazenar a última posição X do toque
-
-let lastRotationY = 0; // Variável para armazenar a rotação acumulada ao longo do eixo Y
 
 let container,
   camera,
@@ -162,18 +159,6 @@ const createARButton = () => {
   );
 };
 
-const createController = () => {
-  controller = renderer.xr.getController(0);
-  // controller.addEventListener("select", onSelect);
-
-  // Adiciona o ouvinte de evento de clique ao botão
-  document.getElementById("btn").addEventListener("click", onSelect);
-
-  document.addEventListener("touchmove", onTouchMove);
-
-  scene.add(controller);
-};
-
 const createReticle = () => {
   reticle = new THREE.Mesh(
     new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
@@ -188,8 +173,20 @@ const addEventListeners = () => {
   window.addEventListener("resize", onWindowResize);
 };
 
+const createController = () => {
+  controller = renderer.xr.getController(0);
+  // controller.addEventListener("select", onSelect);
+
+  // Adiciona o ouvinte de evento de clique ao botão
+  document.getElementById("btn").addEventListener("click", onSelect);
+
+  document.addEventListener("touchmove", onTouchMove);
+
+  scene.add(controller);
+};
+
 const onSelect = () => {
-  if (reticle.visible && obj3d && !isMoving) {
+  if (reticle.visible && obj3d) {
     if (lastObject) {
       scene.remove(lastObject);
       lastObject = null;
@@ -241,34 +238,22 @@ const onSelect = () => {
     }, 16);
     setTimeout(() => {
       clearInterval(interval);
-
-      // Compute bounding box to get dimensions after scaling
-      const object3DWidth = boundingBox.max.x - boundingBox.min.x;
-      const object3DHeight = boundingBox.max.y - boundingBox.min.y;
-      const object3DDepth = boundingBox.max.z - boundingBox.min.z;
-
-      // Log the dimensions
-      console.log("Width after scaling:", object3DWidth);
-      console.log("Height after scaling:", object3DHeight);
-      console.log("Depth after scaling:", object3DDepth);
     }, 500);
 
     lastObject = mesh;
   }
 };
+let lastX = 0;
 const onTouchMove = async (event) => {
   if (event.touches.length === 1) {
     const touch = event.touches[0];
     const deltaX = touch.clientX - lastX; // lastX é a posição X anterior do toque, que precisa ser atualizado ao fim do movimento
-
-    const rotationFactor = 500; // Ajuste conforme a sensibilidade desejada
+    const rotationFactor = 70; // Ajuste conforme a sensibilidade desejada
 
     // Rotacionar com base no movimento horizontal de um dedo
     rotateObject(deltaX, rotationFactor);
-
-    lastX = touch.clientX; // Atualiza a posição X para o próximo movimento
+    lastX = touch.clientX;
   } else if (event.touches.length === 2) {
-    // Implementação futura para zoom
     performZoom(); // Função vazia ou com lógica inicial de zoom
   }
 };
