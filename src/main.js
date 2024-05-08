@@ -5,18 +5,6 @@ import SpriteText from "three-spritetext";
 
 import "./style.css";
 
-const initHammer = () => {
-  const element = document.getElementById("seuElemento");
-  const hammertime = new Hammer(element);
-  hammertime.on("swipe", function (event) {
-    console.log("Swiped!", event);
-  });
-
-  hammertime.on("pinch", function (event) {
-    console.log("Pinched!", event);
-  });
-};
-
 const URL_BASE = "http://localhost:3333/modelo3d/";
 
 let container,
@@ -27,9 +15,7 @@ let container,
   reticle,
   obj3d,
   modelSupported,
-  modelBlob,
-  isMoving,
-  apiUrl;
+  id_value = 0;
 let hitTestSource = null,
   lastObject = null,
   hitTestSourceRequested = false,
@@ -37,10 +23,26 @@ let hitTestSource = null,
 
 const objLoader = new GLTFLoader();
 
-const getModelUrl = () => {
-  return `${URL_BASE}${10}`;
+const valuesOfModels = {
+  0: "m1.glb",
+  1: "chair1.glb",
+  2: "chair1.glb",
+  3: "chair1.glb",
+  4: "chair1.glb",
+  5: "chair1.glb",
+  6: "chair1.glb",
+  7: "chair1.glb",
+  8: "chair1.glb",
+  9: "chair1.glb",
 };
 
+const getUrl = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.has("id")) {
+    const id = searchParams.get("id");
+    id_value = id;
+  } else id_value = 0;
+};
 const loadModel = () => {
   if (window.navigator.xr) {
     document.getElementById("ar-not-supported").innerHTML = "SIM";
@@ -51,8 +53,8 @@ const loadModel = () => {
   modelSupported = true;
 
   scene = new THREE.Scene();
-  const myText = new SpriteText(["OLAIDAND", 16, "white"]);
 
+  console.log(getUrl());
   objLoader.load("/m1.glb", (object) => {
     console.log(object);
     obj3d = object.scene;
@@ -346,5 +348,5 @@ const render = (timestamp, frame) => {
   renderer.render(scene, camera);
 };
 
-apiUrl = getModelUrl();
+// apiUrl = getModelUrl();
 loadModel();
