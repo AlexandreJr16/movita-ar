@@ -24,16 +24,11 @@ let hitTestSource = null,
 const objLoader = new GLTFLoader();
 
 const valuesOfModels = {
-  0: "m1.glb",
-  1: "chair1.glb",
-  2: "chair1.glb",
-  3: "chair1.glb",
-  4: "chair1.glb",
-  5: "chair1.glb",
-  6: "chair1.glb",
-  7: "chair1.glb",
-  8: "chair1.glb",
-  9: "chair1.glb",
+  0: { name: "m1.glb", virado: true },
+  1: { name: "m2.glb", virado: true },
+  2: { name: "m3.glb", virado: true },
+  3: { name: "m4.glb", virado: true },
+  4: { name: "modelo.glb", virado: false },
 };
 
 const getUrl = () => {
@@ -55,7 +50,7 @@ const loadModel = () => {
   scene = new THREE.Scene();
 
   console.log(getUrl());
-  objLoader.load("/m1.glb", (object) => {
+  objLoader.load(valuesOfModels[id_value].name, (object) => {
     console.log(object);
     obj3d = object.scene;
   });
@@ -198,8 +193,11 @@ const onSelect = () => {
     const mesh = flower.clone();
 
     reticle.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
-    const scale = 0.5;
+    const scale = 0.6;
     mesh.scale.set(scale, scale, scale);
+    if (!valuesOfModels[id_value].virado) {
+      mesh.rotation.x = Math.PI / 2;
+    }
 
     // Adicione o texto como um filho do objeto móvel
     const boundingBox = new THREE.Box3().setFromObject(mesh);
@@ -214,6 +212,7 @@ const onSelect = () => {
     );
     textWidth.position.set(object3DWidth * 1.7, 0, 0); // Posicione o texto na borda da largura (horizontalmente)
     textWidth.rotation.y = Math.PI / 2; // Rotacione o texto para que fique na vertical
+
     mesh.add(textWidth);
 
     const textHeight = new SpriteText(
@@ -271,7 +270,11 @@ const onTouchMove = async (event) => {
 
 const rotateObject = (deltaX, rotationFactor) => {
   if (lastObject) {
-    lastObject.rotation.y += deltaX / rotationFactor;
+    if (valuesOfModels[id_value].virado) {
+      lastObject.rotation.y += deltaX / rotationFactor;
+    } else {
+      lastObject.rotation.x += deltaX / rotationFactor;
+    }
   }
 };
 const performZoom = (currentDistance) => {
