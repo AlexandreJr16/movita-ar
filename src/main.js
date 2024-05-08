@@ -210,7 +210,7 @@ const onSelect = () => {
       0.1,
       "white"
     );
-    textWidth.position.set(object3DWidth * 1.5, 0, 0); // Posicione o texto na borda da largura (horizontalmente)
+    textWidth.position.set(object3DWidth * 1.7, 0, 0); // Posicione o texto na borda da largura (horizontalmente)
     textWidth.rotation.y = Math.PI / 2; // Rotacione o texto para que fique na vertical
     mesh.add(textWidth);
 
@@ -219,7 +219,7 @@ const onSelect = () => {
       0.1,
       "white"
     );
-    textHeight.position.set(0, object3DHeight * 2, 0); // Posicione o texto na borda da altura (verticalmente)
+    textHeight.position.set(0, object3DHeight * 2.3, 0); // Posicione o texto na borda da altura (verticalmente)
     mesh.add(textHeight);
 
     const textDepth = new SpriteText(
@@ -227,7 +227,7 @@ const onSelect = () => {
       0.1,
       "white"
     );
-    textDepth.position.set(0, 0, object3DDepth); // Posicione o texto na borda da profundidade (no chão)
+    textDepth.position.set(0, 0, object3DDepth * 1.3); // Posicione o texto na borda da profundidade (no chão)
     mesh.add(textDepth);
     // Ajuste a posição do texto para que ele fique acima do objeto
 
@@ -244,6 +244,8 @@ const onSelect = () => {
   }
 };
 let lastX = 0;
+let lastDistance = 0;
+
 const onTouchMove = async (event) => {
   if (event.touches.length === 1) {
     const touch = event.touches[0];
@@ -254,7 +256,14 @@ const onTouchMove = async (event) => {
     rotateObject(deltaX, rotationFactor);
     lastX = touch.clientX;
   } else if (event.touches.length === 2) {
-    performZoom(); // Função vazia ou com lógica inicial de zoom
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+    const distance = Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+
+    performZoom(distance);
   }
 };
 
@@ -263,11 +272,15 @@ const rotateObject = (deltaX, rotationFactor) => {
     lastObject.rotation.y += deltaX / rotationFactor;
   }
 };
+const performZoom = (currentDistance) => {
+  if (!lastObject) return;
 
-const performZoom = () => {
-  // Lógica para zoom (vazia por enquanto)
+  if (lastDistance !== 0) {
+    const scaleFactor = currentDistance / lastDistance;
+    lastObject.scale.multiplyScalar(scaleFactor);
+  }
+  lastDistance = currentDistance;
 };
-
 const onWindowResize = () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
