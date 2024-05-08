@@ -102,12 +102,29 @@ const sessionStart = () => {
   document.getElementById("tracking-prompt").style.display = "block";
 };
 
+async function requestARPermission() {
+  // Verifica se o navegador suporta a API de permissões
+  if (navigator.permissions) {
+    try {
+      // Solicita permissão para realidade aumentada
+      const permissionStatus = await navigator.permissions.query({
+        name: "camera",
+      });
+    } catch (error) {
+      console.error("Erro ao solicitar permissão da câmera", error);
+    }
+  } else {
+  }
+}
+
 const init = () => {
   createContainer();
   createScene();
   createCamera();
   createLight();
   createRenderer();
+  requestARPermission();
+
   createARButton();
   createController();
   createReticle();
@@ -211,6 +228,7 @@ const onSelect = () => {
       "white"
     );
     textWidth.position.set(object3DWidth * 1.7, 0, 0); // Posicione o texto na borda da largura (horizontalmente)
+    textWidth.isMeasurementText = true; // Marque o texto como um texto de medição
     textWidth.rotation.y = Math.PI / 2; // Rotacione o texto para que fique na vertical
 
     mesh.add(textWidth);
@@ -221,6 +239,7 @@ const onSelect = () => {
       "white"
     );
     textHeight.position.set(0, object3DHeight * 2.3, 0); // Posicione o texto na borda da altura (verticalmente)
+    textHeight.isMeasurementText = true;
     mesh.add(textHeight);
 
     const textDepth = new SpriteText(
@@ -228,6 +247,7 @@ const onSelect = () => {
       0.1,
       "white"
     );
+    textDepth.isMeasurementText = true;
     textDepth.position.set(0, 0, object3DDepth * 1.3); // Posicione o texto na borda da profundidade (no chão)
     mesh.add(textDepth);
     // Ajuste a posição do texto para que ele fique acima do objeto
@@ -277,6 +297,8 @@ const rotateObject = (deltaX, rotationFactor) => {
     }
   }
 };
+let updateTimeout;
+
 const performZoom = (currentDistance) => {
   if (!lastObject) return;
 
@@ -285,7 +307,59 @@ const performZoom = (currentDistance) => {
     lastObject.scale.multiplyScalar(scaleFactor);
   }
   lastDistance = currentDistance;
+
+  // Clear any pending updates to prevent frequent recalculations
+  clearTimeout(updateTimeout);
+
+  // Debounce the updateMeasurements call
+  updateTimeout = setTimeout(() => {
+    updateMeasurements(lastObject); // Pass the correct object to update
+  }, 200); // Adjust delay time as needed to optimize performance
 };
+const updateMeasurements = (mesh) => {
+  // Primeiro, remova os textos antigos se eles existirem
+  for (let i = mesh.children.length - 1; i >= 0; i--) {
+    if (mesh.children[i].isMeasurementText) {
+      mesh.remove(mesh.children[i]);
+    }
+  }
+
+  // Atualiza as dimensões do objeto
+  const boundingBox = new THREE.Box3().setFromObject(mesh);
+  const object3DWidth = boundingBox.max.x - boundingBox.min.x;
+  const object3DHeight = boundingBox.max.y - boundingBox.min.y;
+  const object3DDepth = boundingBox.max.z - boundingBox.min.z;
+
+  // Criação de novos textos de metragens
+  const textWidth = new SpriteText(
+    `L: ${object3DWidth.toFixed(2)}m`,
+    0.1,
+    "white"
+  );
+  textWidth.position.set(object3DWidth + 1, 0, 0);
+  textWidth.rotation.y = Math.PI / 2;
+  textWidth.isMeasurementText = true; // Marque o texto como um texto de medição
+  mesh.add(textWidth);
+
+  const textHeight = new SpriteText(
+    `A: ${object3DHeight.toFixed(2)}m`,
+    0.1,
+    "white"
+  );
+  textHeight.position.set(0, object3DHeight + 1, 0);
+  textHeight.isMeasurementText = true;
+  mesh.add(textHeight);
+
+  const textDepth = new SpriteText(
+    `P: ${object3DDepth.toFixed(2)}m`,
+    0.1,
+    "white"
+  );
+  textDepth.position.set(0, 0, object3DDepth + 1);
+  textDepth.isMeasurementText = true;
+  mesh.add(textDepth);
+};
+
 const onWindowResize = () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
