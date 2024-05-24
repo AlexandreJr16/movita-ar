@@ -117,19 +117,19 @@ async function requestARPermission() {
   }
 }
 
-const init = () => {
-  createContainer();
-  createScene();
-  createCamera();
-  createLight();
-  createRenderer();
-  requestARPermission();
+// const init = () => {
+//   createContainer();
+//   createScene();
+//   createCamera();
+//   createLight();
+//   createRenderer();
+//   requestARPermission();
 
-  createARButton();
-  createController();
-  createReticle();
-  addEventListeners();
-};
+//   createARButton();
+//   createController();
+//   createReticle();
+//   addEventListeners();
+// };
 
 const createContainer = () => {
   container = document.createElement("div");
@@ -149,31 +149,31 @@ const createCamera = () => {
   );
 };
 
-const createLight = () => {
+function init() {
+  container = document.createElement("div");
+  document.body.appendChild(container);
+
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(
+    70,
+    window.innerWidth / window.innerHeight,
+    0.01,
+    20
+  );
+
   const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
   light.position.set(0.5, 1, 0.25);
   scene.add(light);
-};
 
-const createRenderer = () => {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
   container.appendChild(renderer.domElement);
+
   renderer.xr.addEventListener("sessionstart", sessionStart);
-};
 
-const createARButton = () => {
-  document.body.appendChild(
-    ARButton.createButton(renderer, {
-      requiredFeatures: ["local", "hit-test", "dom-overlay"],
-      domOverlay: { root: document.querySelector("#overlay") },
-    })
-  );
-};
-
-const createReticle = () => {
   reticle = new THREE.Mesh(
     new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
     new THREE.MeshBasicMaterial()
@@ -181,12 +181,19 @@ const createReticle = () => {
   reticle.matrixAutoUpdate = false;
   reticle.visible = false;
   scene.add(reticle);
-};
 
-const addEventListeners = () => {
+  document.body.appendChild(
+    ARButton.createButton(renderer, {
+      requiredFeatures: ["local", "hit-test", "dom-overlay"],
+      domOverlay: { root: document.querySelector("#overlay") },
+    })
+  );
+  onSelect();
+  createController();
   window.addEventListener("resize", onWindowResize);
-};
+}
 
+//Gestules
 const createController = () => {
   controller = renderer.xr.getController(0);
   // controller.addEventListener("select", onSelect);
@@ -199,71 +206,6 @@ const createController = () => {
   scene.add(controller);
 };
 
-const onSelect = () => {
-  if (reticle.visible && obj3d) {
-    if (lastObject) {
-      scene.remove(lastObject);
-      lastObject = null;
-    }
-
-    const flower = obj3d.children[0];
-    const mesh = flower.clone();
-
-    reticle.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
-    const scale = 0.6;
-    mesh.scale.set(scale, scale, scale);
-    if (!valuesOfModels[id_value].virado) {
-      mesh.rotation.x = Math.PI / 2;
-    }
-
-    // Adicione o texto como um filho do objeto móvel
-    const boundingBox = new THREE.Box3().setFromObject(mesh);
-    const object3DWidth = boundingBox.max.x - boundingBox.min.x;
-    const object3DHeight = boundingBox.max.y - boundingBox.min.y;
-    const object3DDepth = boundingBox.max.z - boundingBox.min.z;
-
-    const textWidth = new SpriteText(
-      `L: ${object3DWidth.toFixed(2)}m`,
-      0.1,
-      "white"
-    );
-    textWidth.position.set(object3DWidth * 1.7, 0, 0); // Posicione o texto na borda da largura (horizontalmente)
-    textWidth.isMeasurementText = true; // Marque o texto como um texto de medição
-    textWidth.rotation.y = Math.PI / 2; // Rotacione o texto para que fique na vertical
-
-    mesh.add(textWidth);
-
-    const textHeight = new SpriteText(
-      `A: ${object3DHeight.toFixed(2)}m`,
-      0.1,
-      "white"
-    );
-    textHeight.position.set(0, object3DHeight * 2.3, 0); // Posicione o texto na borda da altura (verticalmente)
-    textHeight.isMeasurementText = true;
-    mesh.add(textHeight);
-
-    const textDepth = new SpriteText(
-      `P: ${object3DDepth.toFixed(2)}m`,
-      0.1,
-      "white"
-    );
-    textDepth.isMeasurementText = true;
-    textDepth.position.set(0, 0, object3DDepth * 1.3); // Posicione o texto na borda da profundidade (no chão)
-    mesh.add(textDepth);
-    // Ajuste a posição do texto para que ele fique acima do objeto
-
-    scene.add(mesh);
-
-    const interval = setInterval(() => {
-      mesh.scale.multiplyScalar(1.01);
-    }, 16);
-    setTimeout(() => {
-      clearInterval(interval);
-    }, 500);
-
-    lastObject = mesh;
-  }
-};
 let lastX = 0;
 let lastDistance = 0;
 
@@ -299,6 +241,7 @@ const rotateObject = (deltaX, rotationFactor) => {
 };
 let updateTimeout;
 
+//Zoom
 const performZoom = (currentDistance) => {
   if (!lastObject) return;
 
@@ -423,6 +366,73 @@ const render = (timestamp, frame) => {
   }
 
   renderer.render(scene, camera);
+};
+
+//Ao selecionar para criar um objeto
+const onSelect = () => {
+  if (reticle.visible && obj3d) {
+    if (lastObject) {
+      scene.remove(lastObject);
+      lastObject = null;
+    }
+
+    const flower = obj3d.children[0];
+    const mesh = flower.clone();
+
+    reticle.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
+    const scale = 0.6;
+    mesh.scale.set(scale, scale, scale);
+    if (!valuesOfModels[id_value].virado) {
+      mesh.rotation.x = Math.PI / 2;
+    }
+
+    // Adicione o texto como um filho do objeto móvel
+    const boundingBox = new THREE.Box3().setFromObject(mesh);
+    const object3DWidth = boundingBox.max.x - boundingBox.min.x;
+    const object3DHeight = boundingBox.max.y - boundingBox.min.y;
+    const object3DDepth = boundingBox.max.z - boundingBox.min.z;
+
+    const textWidth = new SpriteText(
+      `L: ${object3DWidth.toFixed(2)}m`,
+      0.1,
+      "white"
+    );
+    textWidth.position.set(object3DWidth * 1.7, 0, 0); // Posicione o texto na borda da largura (horizontalmente)
+    textWidth.isMeasurementText = true; // Marque o texto como um texto de medição
+    textWidth.rotation.y = Math.PI / 2; // Rotacione o texto para que fique na vertical
+
+    mesh.add(textWidth);
+
+    const textHeight = new SpriteText(
+      `A: ${object3DHeight.toFixed(2)}m`,
+      0.1,
+      "white"
+    );
+    textHeight.position.set(0, object3DHeight * 2.3, 0); // Posicione o texto na borda da altura (verticalmente)
+    textHeight.isMeasurementText = true;
+    mesh.add(textHeight);
+
+    const textDepth = new SpriteText(
+      `P: ${object3DDepth.toFixed(2)}m`,
+      0.1,
+      "white"
+    );
+    textDepth.isMeasurementText = true;
+    textDepth.position.set(0, 0, object3DDepth * 1.3); // Posicione o texto na borda da profundidade (no chão)
+    mesh.add(textDepth);
+    // Ajuste a posição do texto para que ele fique acima do objeto
+
+    scene.add(mesh);
+
+    const interval = setInterval(() => {
+      mesh.scale.multiplyScalar(1.01);
+    }, 16);
+    setTimeout(() => {
+      clearInterval(interval);
+    }, 500);
+
+    lastObject = mesh;
+  }
 };
 
 // apiUrl = getModelUrl();
