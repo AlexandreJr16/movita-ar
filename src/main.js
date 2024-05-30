@@ -4,8 +4,11 @@ import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 import SpriteText from "three-spritetext";
 
 import "./style.css";
+import axios from "axios";
 
-const URL_BASE = "http://localhost:3333/modelo3d/";
+const URL_BASE = "http://localhost:3333";
+// const URL_BASE =
+//   "https://7344-2804-14d-14a1-58b6-29d2-28d5-1872-d944.ngrok-free.app";
 
 let container,
   camera,
@@ -24,21 +27,27 @@ let hitTestSource = null,
 const objLoader = new GLTFLoader();
 
 const valuesOfModels = {
-  0: { name: "m1.glb", virado: true },
-  1: { name: "m2.glb", virado: true },
-  2: { name: "m3.glb", virado: true },
-  3: { name: "m4.glb", virado: true },
-  4: { name: "modelo.glb", virado: false },
+  0: { name: "modelo.glb", virado: true },
 };
 
-const getUrl = () => {
+const getUrl = async () => {
   const searchParams = new URLSearchParams(window.location.search);
-  if (searchParams.has("id")) {
+  if (searchParams.has("id") && searchParams.has("id")) {
     const id = searchParams.get("id");
+    const message = searchParams.get("message");
+    console.log({ message, id });
+    if (message == "true" && id) {
+      const response = await axios.get(`${URL_BASE}/modelo3d/message/${id}`);
+      if (response.modelo3D) return response.data;
+      else return null;
+    }
+
     id_value = id;
-  } else id_value = 0;
+  } else {
+    id_value = 0;
+  }
 };
-const loadModel = () => {
+const loadModel = async () => {
   if (window.navigator.xr) {
     document.getElementById("ar-not-supported").innerHTML = "SIM";
   } else {
@@ -49,12 +58,28 @@ const loadModel = () => {
 
   scene = new THREE.Scene();
 
-  console.log(getUrl());
-  objLoader.load(valuesOfModels[id_value].name, (object) => {
-    console.log(object);
-    obj3d = object.scene;
-  });
+  const data = await getUrl();
+  console.log(data, "IBA");
 
+  let modelBlob = data
+    ? new Blob([new Uint8Array(data.modelo3D.data).buffer])
+    : null;
+
+  console.log(modelBlob);
+  if (modelBlob) {
+    objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
+      console.log(gltf.scene);
+      obj3d = gltf.scene;
+      // Adicionando o modelo à cena
+
+      scene.add(obj3d);
+    });
+  } else {
+    objLoader.load(valuesOfModels[0].name, (object) => {
+      console.log(object);
+      obj3d = object.scene;
+    });
+  }
   initialize();
 };
 
