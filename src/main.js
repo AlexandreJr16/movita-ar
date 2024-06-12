@@ -31,27 +31,28 @@ const valuesOfModels = {
 // Função para obter o URL do modelo 3D
 const getUrl = async () => {
   const searchParams = new URLSearchParams(window.location.search);
-  if (searchParams.has("id") && searchParams.has("id")) {
+  if (searchParams.has("id") && searchParams.has("message")) {
     const id = searchParams.get("id");
     const message = searchParams.get("message");
     console.log({ message, id });
     if (message == "true" && id) {
       const response = await axios.get(`${URL_BASE}/modelo3d/message/${id}`);
-      if (response.modelo3D) return response.data;
+      if (response.data && response.data.modelo3D) return response.data;
       else return null;
     }
     id_value = id;
   } else {
     id_value = 0;
   }
+  return null;
 };
 
 // Função para carregar o modelo 3D
 const loadModel = async () => {
-  if (window.navigator.xr) {
-    document.getElementById("ar-not-supported").innerHTML = "SIM";
+  if (navigator.xr) {
+    document.getElementById("ar-not-supported").innerText = "SIM";
   } else {
-    document.getElementById("ar-not-supported").innerHTML = "Não";
+    document.getElementById("ar-not-supported").innerText = "Não";
   }
 
   modelSupported = true;
@@ -92,7 +93,7 @@ const initialize = () => {
           init();
           animate();
         } else {
-          document.getElementById("model-unsupported").style.innerHTML =
+          document.getElementById("model-unsupported").innerText =
             "Teste de desenvolvimento";
         }
       }
@@ -123,16 +124,6 @@ const sessionStart = () => {
   document.getElementById("tracking-prompt").style.display = "block";
 };
 
-async function requestARPermission() {
-  if (navigator.permissions) {
-    try {
-      await navigator.permissions.query({ name: "camera" });
-    } catch (error) {
-      console.error("Erro ao solicitar permissão da câmera", error);
-    }
-  }
-}
-
 // Inicialização da cena
 function init() {
   container = document.createElement("div");
@@ -147,8 +138,8 @@ function init() {
     20
   );
 
-  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-  light.position.set(0.5, 1, 0.25);
+  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1.2);
+  light.position.set(2, 2, 2);
   scene.add(light);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -173,7 +164,6 @@ function init() {
       domOverlay: { root: document.querySelector("#overlay") },
     })
   );
-  onSelect();
   createController();
   window.addEventListener("resize", onWindowResize);
 }
@@ -190,13 +180,13 @@ let lastX = 0;
 let lastDistance = 0;
 
 // Função para manipulação de gestos
-const onTouchMove = async (event) => {
+const onTouchMove = (event) => {
   if (event.touches.length === 1) {
     const touch = event.touches[0];
     const deltaX = touch.clientX - lastX;
     const rotationFactor = 70;
     rotateObject(deltaX, rotationFactor);
-    lastX = touch.clientX;
+    lastX = touch.clientX; // Atualiza a última posição de toque
   } else if (event.touches.length === 2) {
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];
@@ -205,6 +195,7 @@ const onTouchMove = async (event) => {
         Math.pow(touch2.clientY - touch1.clientY, 2)
     );
     performZoom(distance);
+    lastDistance = distance; // Atualiza a última distância entre os dedos
   }
 };
 
@@ -296,7 +287,7 @@ const render = (timestamp, frame) => {
     const referenceSpace = renderer.xr.getReferenceSpace();
     const session = renderer.xr.getSession();
 
-    if (hitTestSourceRequested === false) {
+    if (!hitTestSourceRequested) {
       session.requestReferenceSpace("viewer").then((referenceSpace) => {
         session
           .requestHitTestSource({ space: referenceSpace })
@@ -325,14 +316,9 @@ const render = (timestamp, frame) => {
           document.getElementById("divBtn").style.display = "flex";
         }
         const hit = hitTestResults[0];
-        if (hit) {
-          const hitMatrix = new THREE.Matrix4().fromArray(
-            hit.getPose(referenceSpace).transform.matrix
-          );
-          const hitNormal = new THREE.Vector3(0, 0, -1);
-          hitNormal.applyMatrix4(hitMatrix);
-        }
-
+        const hitMatrix = new THREE.Matrix4().fromArray(
+          hit.getPose(referenceSpace).transform.matrix
+        );
         reticle.visible = true;
         reticle.matrix.fromArray(hit.getPose(referenceSpace).transform.matrix);
       } else {
