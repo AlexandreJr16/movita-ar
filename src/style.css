@@ -66,8 +66,6 @@ h1 {
   bottom: 0;
   z-index: 15;
 }
-#btn {
-}
 
 @keyframes circle {
   from {
@@ -101,15 +99,17 @@ h1 {
   animation: circle 4s linear infinite;
   filter: brightness(200%);
 }
-#btn {
+#divBtn {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 40px;
-  width: 90%;
-  padding-top: 0.8rem;
-  padding-bottom: 0.8rem;
-  border-radius: 20px;
+  bottom: 30px;
+  height: 70px;
+  width: 70px;
+
+  border-radius: 100%;
+  border-width: 4px;
+  border-color: #242424;
   font-size: 18pt;
   display: none;
   outline: none;

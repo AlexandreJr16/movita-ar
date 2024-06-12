@@ -2,13 +2,11 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 import SpriteText from "three-spritetext";
-
 import "./style.css";
 import axios from "axios";
 
 const URL_BASE = "http://localhost:3333";
-// const URL_BASE =
-//   "https://7344-2804-14d-14a1-58b6-29d2-28d5-1872-d944.ngrok-free.app";
+// const URL_BASE = "https://7344-2804-14d-14a1-58b6-29d2-28d5-1872-d944.ngrok-free.app";
 
 let container,
   camera,
@@ -27,9 +25,10 @@ let hitTestSource = null,
 const objLoader = new GLTFLoader();
 
 const valuesOfModels = {
-  0: { name: "modelo.glb", virado: true },
+  0: { name: "mesa.glb", virado: true },
 };
 
+// Função para obter o URL do modelo 3D
 const getUrl = async () => {
   const searchParams = new URLSearchParams(window.location.search);
   if (searchParams.has("id") && searchParams.has("id")) {
@@ -41,12 +40,13 @@ const getUrl = async () => {
       if (response.modelo3D) return response.data;
       else return null;
     }
-
     id_value = id;
   } else {
     id_value = 0;
   }
 };
+
+// Função para carregar o modelo 3D
 const loadModel = async () => {
   if (window.navigator.xr) {
     document.getElementById("ar-not-supported").innerHTML = "SIM";
@@ -55,9 +55,7 @@ const loadModel = async () => {
   }
 
   modelSupported = true;
-
   scene = new THREE.Scene();
-
   const data = await getUrl();
   console.log(data, "IBA");
 
@@ -65,13 +63,10 @@ const loadModel = async () => {
     ? new Blob([new Uint8Array(data.modelo3D.data).buffer])
     : null;
 
-  console.log(modelBlob);
   if (modelBlob) {
     objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
       console.log(gltf.scene);
       obj3d = gltf.scene;
-      // Adicionando o modelo à cena
-
       scene.add(obj3d);
     });
   } else {
@@ -83,6 +78,7 @@ const loadModel = async () => {
   initialize();
 };
 
+// Função para inicializar a aplicação
 const initialize = () => {
   if (navigator.xr) {
     navigator.xr.isSessionSupported("immersive-ar").then(async (supported) => {
@@ -93,7 +89,6 @@ const initialize = () => {
         if (permissionGranted) {
           document.getElementById("ar-not-supported").style.display = "none";
           document.getElementById("model-unsupported").style.display = "none";
-
           init();
           animate();
         } else {
@@ -107,18 +102,19 @@ const initialize = () => {
   }
 };
 
+// Função para solicitar permissão da câmera
 const requestCameraPermission = async () => {
   try {
-    // Solicitar permissões de câmera
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" },
     });
-    stream.getTracks().forEach((track) => track.stop()); // Parar o stream de vídeo após a verificação da permissão
+
+    stream.getTracks().forEach((track) => track.stop());
     console.log(stream);
-    return true; // Permissões concedidas
+    return true;
   } catch (error) {
     console.error("Erro ao solicitar permissões de câmera:", error);
-    return false; // Permissões não concedidas
+    return false;
   }
 };
 
@@ -128,52 +124,16 @@ const sessionStart = () => {
 };
 
 async function requestARPermission() {
-  // Verifica se o navegador suporta a API de permissões
   if (navigator.permissions) {
     try {
-      // Solicita permissão para realidade aumentada
-      const permissionStatus = await navigator.permissions.query({
-        name: "camera",
-      });
+      await navigator.permissions.query({ name: "camera" });
     } catch (error) {
       console.error("Erro ao solicitar permissão da câmera", error);
     }
-  } else {
   }
 }
 
-// const init = () => {
-//   createContainer();
-//   createScene();
-//   createCamera();
-//   createLight();
-//   createRenderer();
-//   requestARPermission();
-
-//   createARButton();
-//   createController();
-//   createReticle();
-//   addEventListeners();
-// };
-
-const createContainer = () => {
-  container = document.createElement("div");
-  document.body.appendChild(container);
-};
-
-const createScene = () => {
-  scene = new THREE.Scene();
-};
-
-const createCamera = () => {
-  camera = new THREE.PerspectiveCamera(
-    70,
-    window.innerWidth / window.innerHeight,
-    0.01,
-    20
-  );
-};
-
+// Inicialização da cena
 function init() {
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -218,29 +178,23 @@ function init() {
   window.addEventListener("resize", onWindowResize);
 }
 
-//Gestules
+// Função para criar o controlador de AR
 const createController = () => {
   controller = renderer.xr.getController(0);
-  // controller.addEventListener("select", onSelect);
-
-  // Adiciona o ouvinte de evento de clique ao botão
-  document.getElementById("btn").addEventListener("click", onSelect);
-
+  document.getElementById("divBtn").addEventListener("click", onSelect);
   document.addEventListener("touchmove", onTouchMove);
-
   scene.add(controller);
 };
 
 let lastX = 0;
 let lastDistance = 0;
 
+// Função para manipulação de gestos
 const onTouchMove = async (event) => {
   if (event.touches.length === 1) {
     const touch = event.touches[0];
-    const deltaX = touch.clientX - lastX; // lastX é a posição X anterior do toque, que precisa ser atualizado ao fim do movimento
-    const rotationFactor = 70; // Ajuste conforme a sensibilidade desejada
-
-    // Rotacionar com base no movimento horizontal de um dedo
+    const deltaX = touch.clientX - lastX;
+    const rotationFactor = 70;
     rotateObject(deltaX, rotationFactor);
     lastX = touch.clientX;
   } else if (event.touches.length === 2) {
@@ -250,11 +204,11 @@ const onTouchMove = async (event) => {
       Math.pow(touch2.clientX - touch1.clientX, 2) +
         Math.pow(touch2.clientY - touch1.clientY, 2)
     );
-
     performZoom(distance);
   }
 };
 
+// Função para rotacionar o objeto
 const rotateObject = (deltaX, rotationFactor) => {
   if (lastObject) {
     if (valuesOfModels[id_value].virado) {
@@ -264,41 +218,37 @@ const rotateObject = (deltaX, rotationFactor) => {
     }
   }
 };
+
 let updateTimeout;
 
-//Zoom
+// Função para realizar o zoom
 const performZoom = (currentDistance) => {
   if (!lastObject) return;
-
   if (lastDistance !== 0) {
     const scaleFactor = currentDistance / lastDistance;
     lastObject.scale.multiplyScalar(scaleFactor);
   }
   lastDistance = currentDistance;
 
-  // Clear any pending updates to prevent frequent recalculations
   clearTimeout(updateTimeout);
-
-  // Debounce the updateMeasurements call
   updateTimeout = setTimeout(() => {
-    updateMeasurements(lastObject); // Pass the correct object to update
-  }, 200); // Adjust delay time as needed to optimize performance
+    updateMeasurements(lastObject);
+  }, 200);
 };
+
+// Função para atualizar as medições do objeto
 const updateMeasurements = (mesh) => {
-  // Primeiro, remova os textos antigos se eles existirem
   for (let i = mesh.children.length - 1; i >= 0; i--) {
     if (mesh.children[i].isMeasurementText) {
       mesh.remove(mesh.children[i]);
     }
   }
 
-  // Atualiza as dimensões do objeto
   const boundingBox = new THREE.Box3().setFromObject(mesh);
   const object3DWidth = boundingBox.max.x - boundingBox.min.x;
   const object3DHeight = boundingBox.max.y - boundingBox.min.y;
   const object3DDepth = boundingBox.max.z - boundingBox.min.z;
 
-  // Criação de novos textos de metragens
   const textWidth = new SpriteText(
     `L: ${object3DWidth.toFixed(2)}m`,
     0.1,
@@ -306,7 +256,7 @@ const updateMeasurements = (mesh) => {
   );
   textWidth.position.set(object3DWidth + 1, 0, 0);
   textWidth.rotation.y = Math.PI / 2;
-  textWidth.isMeasurementText = true; // Marque o texto como um texto de medição
+  textWidth.isMeasurementText = true;
   mesh.add(textWidth);
 
   const textHeight = new SpriteText(
@@ -328,16 +278,19 @@ const updateMeasurements = (mesh) => {
   mesh.add(textDepth);
 };
 
+// Função para ajustar a cena ao redimensionar a janela
 const onWindowResize = () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
+// Função para animação da cena
 const animate = () => {
   renderer.setAnimationLoop(render);
 };
 
+// Função de renderização
 const render = (timestamp, frame) => {
   if (frame) {
     const referenceSpace = renderer.xr.getReferenceSpace();
@@ -369,16 +322,14 @@ const render = (timestamp, frame) => {
           document.getElementById("tracking-prompt").style.display = "none";
         }
         if (planeFound) {
-          document.getElementById("btn").style.display = "flex";
+          document.getElementById("divBtn").style.display = "flex";
         }
         const hit = hitTestResults[0];
-
         if (hit) {
           const hitMatrix = new THREE.Matrix4().fromArray(
             hit.getPose(referenceSpace).transform.matrix
           );
           const hitNormal = new THREE.Vector3(0, 0, -1);
-
           hitNormal.applyMatrix4(hitMatrix);
         }
 
@@ -393,7 +344,7 @@ const render = (timestamp, frame) => {
   renderer.render(scene, camera);
 };
 
-//Ao selecionar para criar um objeto
+// Função de seleção para criar um objeto na cena
 const onSelect = () => {
   if (reticle.visible && obj3d) {
     if (lastObject) {
@@ -411,7 +362,6 @@ const onSelect = () => {
       mesh.rotation.x = Math.PI / 2;
     }
 
-    // Adicione o texto como um filho do objeto móvel
     const boundingBox = new THREE.Box3().setFromObject(mesh);
     const object3DWidth = boundingBox.max.x - boundingBox.min.x;
     const object3DHeight = boundingBox.max.y - boundingBox.min.y;
@@ -422,10 +372,9 @@ const onSelect = () => {
       0.1,
       "white"
     );
-    textWidth.position.set(object3DWidth * 1.7, 0, 0); // Posicione o texto na borda da largura (horizontalmente)
-    textWidth.isMeasurementText = true; // Marque o texto como um texto de medição
-    textWidth.rotation.y = Math.PI / 2; // Rotacione o texto para que fique na vertical
-
+    textWidth.position.set(object3DWidth * 1.7, 0, 0);
+    textWidth.isMeasurementText = true;
+    textWidth.rotation.y = Math.PI / 2;
     mesh.add(textWidth);
 
     const textHeight = new SpriteText(
@@ -433,7 +382,7 @@ const onSelect = () => {
       0.1,
       "white"
     );
-    textHeight.position.set(0, object3DHeight * 2.3, 0); // Posicione o texto na borda da altura (verticalmente)
+    textHeight.position.set(0, object3DHeight * 2.3, 0);
     textHeight.isMeasurementText = true;
     mesh.add(textHeight);
 
@@ -443,9 +392,8 @@ const onSelect = () => {
       "white"
     );
     textDepth.isMeasurementText = true;
-    textDepth.position.set(0, 0, object3DDepth * 1.3); // Posicione o texto na borda da profundidade (no chão)
+    textDepth.position.set(0, 0, object3DDepth * 1.3);
     mesh.add(textDepth);
-    // Ajuste a posição do texto para que ele fique acima do objeto
 
     scene.add(mesh);
 
@@ -460,5 +408,5 @@ const onSelect = () => {
   }
 };
 
-// apiUrl = getModelUrl();
+// Iniciar o carregamento do modelo
 loadModel();
