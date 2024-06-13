@@ -2,14 +2,7 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  color: #fff;
 }
 
 a {
@@ -107,16 +100,29 @@ h1 {
   height: 70px;
   width: 70px;
 
+  background-color: #242424;
   border-radius: 100%;
-  border-width: 4px;
-  border-color: #242424;
   font-size: 18pt;
+  border: none;
   display: none;
   outline: none;
   align-items: center;
   justify-content: center;
 }
 
+#divBtn > div {
+  background-color: #cfcccc;
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  transition: 0.6s;
+}
+
+#divBtn > div:focus,
+#divBtn > div:active {
+  transform: scale(1.15);
+  box-shadow: 0px 3px 16px #1f1f1f;
+}
 #qr-code {
   border-radius: 0.5rem;
   box-shadow: 0 0 0 0.3rem rgba(0, 0, 0, 0.1),

@@ -66,6 +66,7 @@ const loadModel = async () => {
 
   if (modelBlob) {
     objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
+      // obj3d.receiveShadow = true;
       console.log(gltf.scene);
       obj3d = gltf.scene;
       scene.add(obj3d);
@@ -76,6 +77,7 @@ const loadModel = async () => {
       obj3d = object.scene;
     });
   }
+
   initialize();
 };
 
@@ -147,6 +149,8 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
   container.appendChild(renderer.domElement);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Tipo de sombra suave para melhor qualidade
 
   renderer.xr.addEventListener("sessionstart", sessionStart);
 
