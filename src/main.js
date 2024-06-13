@@ -25,7 +25,7 @@ let hitTestSource = null,
 const objLoader = new GLTFLoader();
 
 const valuesOfModels = {
-  0: { name: "mesa.glb", virado: true },
+  0: { name: "estante.glb", virado: true },
 };
 
 // Função para obter o URL do modelo 3D
