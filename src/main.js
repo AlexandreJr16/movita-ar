@@ -26,11 +26,16 @@ const objLoader = new GLTFLoader();
 
 const valuesOfModels = {
   0: { name: "estante.glb", virado: true },
+  1: { name: "mesa.glb", virado: true },
+  2: { name: "modelo.glb", virado: true },
 };
 
 // Função para obter o URL do modelo 3D
 const getUrl = async () => {
   const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.has("default")) {
+    return { status: "default", number: Number(searchParams.get("default")) };
+  }
   if (searchParams.has("id") && searchParams.has("message")) {
     const id = searchParams.get("id");
     const message = searchParams.get("message");
@@ -58,24 +63,30 @@ const loadModel = async () => {
   modelSupported = true;
   scene = new THREE.Scene();
   const data = await getUrl();
-  console.log(data, "IBA");
-
-  let modelBlob = data
-    ? new Blob([new Uint8Array(data.modelo3D.data).buffer])
-    : null;
-
-  if (modelBlob) {
-    objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
-      // obj3d.receiveShadow = true;
-      console.log(gltf.scene);
-      obj3d = gltf.scene;
-      scene.add(obj3d);
-    });
-  } else {
-    objLoader.load(valuesOfModels[0].name, (object) => {
+  if (data && "status" in data && data.status == "default") {
+    console.log(data, "OLA");
+    objLoader.load(valuesOfModels[Number(data.number)].name, (object) => {
       console.log(object);
       obj3d = object.scene;
     });
+  } else {
+    let modelBlob = data
+      ? new Blob([new Uint8Array(data.modelo3D.data).buffer])
+      : null;
+
+    if (modelBlob) {
+      objLoader.load(URL.createObjectURL(modelBlob), (gltf) => {
+        // obj3d.receiveShadow = true;
+        console.log(gltf.scene);
+        obj3d = gltf.scene;
+        scene.add(obj3d);
+      });
+    } else {
+      objLoader.load(valuesOfModels[0].name, (object) => {
+        console.log(object);
+        obj3d = object.scene;
+      });
+    }
   }
 
   initialize();
